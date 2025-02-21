@@ -3,7 +3,7 @@ using UsersManegementSystem.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<ApplicationDbContext>(opciones => opciones.UseSqlServer(builder.Configuration.GetConnectionString("ConexionSQL")));
+builder.Services.AddDbContext<ApplicationDbContext>(opciones => opciones.UseNpgsql(builder.Configuration.GetConnectionString("ConexionSQL")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -27,6 +27,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Inicio}/{action=Index}/{id?}");
 
 app.Run();
