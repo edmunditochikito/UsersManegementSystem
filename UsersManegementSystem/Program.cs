@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using UsersManegementSystem.Data;
+using UsersManegementSystem.Data.Repository;
+using UsersManegementSystem.Data.Repository.IRepository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +9,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(opciones => opciones.UseNpgs
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IContenedorTrabajo, ContenedorTrabajo>();
 
 var app = builder.Build();
 

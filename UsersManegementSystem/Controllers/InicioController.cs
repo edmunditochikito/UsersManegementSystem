@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UsersManegementSystem.Data;
+using UsersManegementSystem.Data.Repository.IRepository;
 using UsersManegementSystem.Models;
 
 namespace UsersManegementSystem.Controllers
@@ -9,10 +10,10 @@ namespace UsersManegementSystem.Controllers
     public class InicioController : Controller
     {
         //private readonly ILogger<InicioController> _logger;
-        private readonly ApplicationDbContext _context;
-        public InicioController(ApplicationDbContext context)
+        private readonly IContenedorTrabajo _contenedorTrabajo;
+        public InicioController(IContenedorTrabajo contenedorTrabajo)
         {
-            _context = context;
+            _contenedorTrabajo = contenedorTrabajo;
         }
         [HttpGet]
         public IActionResult Index()
@@ -25,32 +26,31 @@ namespace UsersManegementSystem.Controllers
             return View();
         }
 
-        [HttpPost,ValidateAntiForgeryToken]
-        public async Task<IActionResult> Crear(User user)
+        [HttpPost]
+        public async Task<IActionResult> Crear([FromBody]User user)
         {
-            if (!ModelState.IsValid) {
-                return View(user);
-
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
+
             try
             {
-                _context.User.Add(user);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                _contenedorTrabajo.User.Add(user);
+                _contenedorTrabajo.Save();
+
+                return Json(new { status = "success", message = "Usuario registrado correctamente",data =  _contenedorTrabajo.User.GetAll() });
             }
             catch (DbUpdateException ex)
             {
                 if (ex.InnerException is Npgsql.PostgresException sqlEx && sqlEx.SqlState == "23505")
                 {
-                    ModelState.AddModelError("Email", "El correo electrónico ya está registrado.");
+                    return Json(new { status = "error", message = "El correo electrónico ya está registrado." });
                 }
-                else
-                {
-                    ModelState.AddModelError("", "Ocurrió un error al registrar el usuario.");
-                }
-                return View(user);
+
+                return Json(new { status = "error", message = $"Ocurrió un error al registrar el usuario. {ex}" });
             }
-            
+
         }
 
 
@@ -61,8 +61,8 @@ namespace UsersManegementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Manage()
         {
-            _context.User.ToList().ForEach(item => Console.WriteLine(item));
-            return View(await _context.User.ToListAsync());
+            
+            return View( _contenedorTrabajo.User.GetAll());
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
